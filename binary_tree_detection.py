@@ -1,5 +1,4 @@
-# Node is defined as
-class node:
+class Node:
     def __init__(self, data):
         self.data = data
         self.left = None
@@ -8,39 +7,81 @@ class node:
 MAX = 100000
 MIN = -1
 
-def checkStep(node, lBound, rBound, visited):
-    left, right, data = node.left, node.right, node.data
+def check_step(node, l_bound, r_bound, visited):
+    """
+    Recursive function to validate the BST properties.
+
+    Args:
+    node (Node): The current node in the BST.
+    l_bound (int): The lower bound for the current node's data.
+    r_bound (int): The upper bound for the current node's data.
+    visited (dict): A dictionary to keep track of visited nodes.
+
+    Returns:
+    bool: True if the subtree rooted at `node` is a BST, False otherwise.
+    """
+    if not node:
+        return True
+
+    data = node.data
 
     if data in visited:
         return False
-    visited[data] = []
+    visited[data] = True
 
-    if lBound > data or data > rBound:
+    if not (l_bound < data < r_bound):
         return False
 
-    if node.left is not None:
-        if not checkStep(node.left, lBound, data, visited):
-            return False
-    if node.right is not None:
-        if not checkStep(node.right, data, rBound, visited):
-            return False
-    return True
+    return (check_step(node.left, l_bound, data, visited) and
+            check_step(node.right, data, r_bound, visited))
 
-def checkBST(root):
-    left, right, data = root.left, root.right, root.data
-    visited = {data: []}
-    if left is not None:
-        if not checkStep(left, MIN, data, visited):
-            return False
-    if right is not None:
-        if not checkStep(right, data, MAX, visited):
-            return False
-    return True
+def check_bst(root):
+    """
+    Checks if a binary tree is a binary search tree (BST).
 
-test_root = node(5)
-test_root.left = node(2)
-test_root.left.left = node(1)
-test_root.right = node(7)
-test_root.right.right = node(8)
+    Args:
+    root (Node): The root node of the binary tree.
 
-print(checkBST(test_root))
+    Returns:
+    bool: True if the binary tree is a BST, False otherwise.
+    """
+    if not root:
+        return True
+
+    visited = {root.data: True}
+    return (check_step(root.left, MIN, root.data, visited) and
+            check_step(root.right, root.data, MAX, visited))
+
+# Unit tests
+def test_check_bst():
+    # Test case 1: A valid BST
+    root1 = Node(5)
+    root1.left = Node(2)
+    root1.left.left = Node(1)
+    root1.right = Node(7)
+    root1.right.right = Node(8)
+    assert check_bst(root1) == True, "Test case 1 failed"
+
+    # Test case 2: Not a BST (left child greater than root)
+    root2 = Node(5)
+    root2.left = Node(6)
+    root2.right = Node(7)
+    assert check_bst(root2) == False, "Test case 2 failed"
+
+    # Test case 3: Not a BST (right child less than root)
+    root3 = Node(5)
+    root3.left = Node(2)
+    root3.right = Node(4)
+    assert check_bst(root3) == False, "Test case 3 failed"
+
+    # Test case 4: Empty tree (should be considered a BST)
+    assert check_bst(None) == True, "Test case 4 failed"
+
+    # Test case 5: Single node tree (should be considered a BST)
+    root5 = Node(10)
+    assert check_bst(root5) == True, "Test case 5 failed"
+
+    print("All test cases passed!")
+
+# Running the unit tests
+test_check_bst()
