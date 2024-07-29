@@ -1,75 +1,68 @@
-#!/bin/python3
+import unittest
 
-import math
-import os
-import random
-import re
-import sys
+def distribute_candies(ratings):
+    """
+    Distribute candies to children based on their ratings.
 
-# Complete the candies function below.
-def candies(n, arr):
-    cands = [0] * n
+    Rules:
+    1. Each child must have at least one candy.
+    2. Children with a higher rating get more candies than their adjacent neighbors.
+
+    Args:
+    ratings (list): A list of integers representing the ratings of children.
+
+    Returns:
+    int: The minimum total number of candies needed.
+    """
+    n = len(ratings)
     if n == 0:
         return 0
     if n == 1:
         return 1
-    if arr[0] <= arr[1]:
-        cands[0] = 1
-    if arr[n-1] <= arr[n-2]:
-        cands[n-1] = 1
-    for i in range(1,n-1):
-        if arr[i-1] >= arr[i] <= arr[i+1]:
-            cands[i] = 1
-        if arr[i] > arr[i-1] and cands[i-1]>0:
-            cands[i] = cands[i-1] + 1
-    if arr[n-1] > arr[n-2] and cands[n-2] > 0:
-        cands[n-1] = cands[n-2] + 1
-    for i in range(n-2, -1, -1):
-        if arr[i+1] < arr[i]:
-             cands[i] = max(cands[i+1] + 1, cands[i])
-    return sum(cands)
 
-def minCandiesDistr(arr):
-    n =  len(arr)
-    if n == 0:
-          return 0
-    if n == 1:
-         return 1
-    cand = [0] * n
-    if arr[0] <=arr[1]:
-         cand[0] = 1
-    if arr[n - 1] <= arr[n-2]:
-         cand[n-1] =1
-    # find mins and fill from left to right
-    for i in range(1, n-1):
-        if arr[i-1] >= arr[i] <= arr[i+1]:
-            cand[i] = 1
-        if arr[i] > arr[i-1] and cand[i-1] != 0:
-            cand[i] = cand[i-1] + 1
-    if arr[n - 1] > arr[n-2] and cand[n-2] != 0:
-        cand[n-1] = cand[n-2] + 1
-    # find max and fill from right to left
-    # cand[i] == 0 or cand[i] > 0 cand[i] = (cand[i], cand[i+1] + 1)
+    candies = [1] * n
+
+    # Forward pass: compare with left neighbor
+    for i in range(1, n):
+        if ratings[i] > ratings[i-1]:
+            candies[i] = candies[i-1] + 1
+
+    # Backward pass: compare with right neighbor and update if necessary
     for i in range(n-2, -1, -1):
-         if arr[i] > arr[i+1] and cand[i+1] != 0:
-                 cand[i] = max( cand[i+1] +1, cand[i])
-    return sum(cand)
+        if ratings[i] > ratings[i+1] and candies[i] <= candies[i+1]:
+            candies[i] = candies[i+1] + 1
+
+    return sum(candies)
+
+
+class TestDistributeCandies(unittest.TestCase):
+    def test_empty_list(self):
+        self.assertEqual(distribute_candies([]), 0)
+
+    def test_single_child(self):
+        self.assertEqual(distribute_candies([1]), 1)
+
+    def test_two_children_same_rating(self):
+        self.assertEqual(distribute_candies([1, 1]), 2)
+
+    def test_two_children_different_rating(self):
+        self.assertEqual(distribute_candies([1, 2]), 3)
+
+    def test_increasing_ratings(self):
+        self.assertEqual(distribute_candies([1, 2, 3, 4, 5]), 15)
+
+    def test_decreasing_ratings(self):
+        self.assertEqual(distribute_candies([5, 4, 3, 2, 1]), 15)
+
+    def test_mixed_ratings(self):
+        self.assertEqual(distribute_candies([1, 0, 2]), 5)
+        self.assertEqual(distribute_candies([1, 2, 2]), 4)
+        self.assertEqual(distribute_candies([2, 4, 2, 6, 1, 7, 8, 9, 2, 1]), 19)
+        self.assertEqual(distribute_candies([1, 3, 4, 5, 2]), 11)
+
+    def test_all_same_ratings(self):
+        self.assertEqual(distribute_candies([1, 1, 1, 1, 1]), 5)
 
 
 if __name__ == '__main__':
-    # fptr = open(os.environ['OUTPUT_PATH'], 'w')
-    #
-    # n = int(input())
-    #
-    # arr = []
-    #
-    # for _ in range(n):
-    #     arr_item = int(input())
-    #     arr.append(arr_item)
-
-    # result = candies(n, arr)
-    #
-    # fptr.write(str(result) + '\n')
-    #
-    # fptr.close()
-    print(minCandiesDistr([2, 4, 2, 6, 1, 7, 8, 9, 2, 1]))
+    unittest.main()
