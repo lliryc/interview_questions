@@ -1,78 +1,88 @@
-from typing import List
+from typing import List, Set
 from collections import defaultdict
+
 class Solution:
+    """
+    Solution class for counting the number of valid Android lock patterns.
+    """
+
     def __init__(self):
+        """
+        Initialize the Solution class with skip patterns and counters.
+        """
         self.m = 0
         self.n = 0
         self.skip = defaultdict(int)
-        self.skip[(1, 3)] = self.skip[(3, 1)] = 1
-        self.skip[(1, 7)] = self.skip[(7, 1)] = 1
-        self.skip[(7, 9)] = self.skip[(9, 7)] = 1
-        self.skip[(3, 9)] = self.skip[(9, 3)] = 1
-        self.skip[(2, 8)] = self.skip[(8, 2)] = self.skip[(4, 6)] = self.skip[(6, 4)] = 1
-        self.skip[(3, 7)] = self.skip[(7, 3)] = self.skip[(1, 9)] = self.skip[(9, 1)] = 1
+        self._initialize_skip_patterns()
+
+    def _initialize_skip_patterns(self):
+        """
+        Initialize the skip patterns for the Android lock.
+        """
+        skip_pairs = [
+            (1, 3), (1, 7), (3, 9), (7, 9),
+            (2, 8), (4, 6), (1, 9), (3, 7)
+        ]
+        for start, end in skip_pairs:
+            self.skip[(start, end)] = self.skip[(end, start)] = 1
 
     def numberOfPatterns(self, m: int, n: int) -> int:
-        digits = set(range(1,10))
-        self.n = n
-        self.m = m
-        res = 0
-        res += self.dfs(1, digits, 1) * 4
-        res += self.dfs(2, digits, 1) * 4
-        res += self.dfs(5, digits, 1)
-        return res
+        """
+        Count the number of valid Android lock patterns.
 
-    def dfs(self, c, digits, rest):
-        if rest == self.n:
+        Args:
+            m (int): Minimum number of keys to use.
+            n (int): Maximum number of keys to use.
+
+        Returns:
+            int: The total number of valid patterns.
+        """
+        self.m, self.n = m, n
+        digits = set(range(1, 10))
+        
+        return (
+            self.dfs(1, digits, 1) * 4 +  # Patterns starting from corners
+            self.dfs(2, digits, 1) * 4 +  # Patterns starting from edges
+            self.dfs(5, digits, 1)        # Patterns starting from center
+        )
+
+    def dfs(self, current: int, available: Set[int], length: int) -> int:
+        """
+        Perform depth-first search to count valid patterns.
+
+        Args:
+            current (int): Current key in the pattern.
+            available (Set[int]): Set of available keys.
+            length (int): Current length of the pattern.
+
+        Returns:
+            int: Number of valid patterns from the current state.
+        """
+        if length == self.n:
             return 1
-        digits.remove(c)
-        res = 0
-        ds = list(digits)
-        for d in ds:
-            if self.skip[(c,d)] == 1:
-                continue
-            res += self.dfs(d, digits, rest + 1)
-        digits.add(c)
-        return res + int(rest >= self.m)
+
+        count = int(length >= self.m)  # Count current pattern if it meets minimum length
+        available.remove(current)
+
+        for next_key in list(available):
+            if self.skip[(current, next_key)] == 0 or (current + next_key) // 2 in available:
+                count += self.dfs(next_key, available, length + 1)
+
+        available.add(current)
+        return count
+
+
+def test_solution():
+    """
+    Unit tests for the Solution class.
+    """
+    s = Solution()
+    
+    assert s.numberOfPatterns(1, 1) == 9, "Test case 1 failed"
+    assert s.numberOfPatterns(1, 2) == 65, "Test case 2 failed"
+    assert s.numberOfPatterns(1, 3) == 385, "Test case 3 failed"
+    
+    print("All test cases passed!")
 
 if __name__ == "__main__":
-    s = Solution()
-    #print(s.numberOfPatterns(1, 1) == 9)
-    #print(s.numberOfPatterns(1, 2) == 65)
-    print(s.numberOfPatterns(1, 3))
-
-class Solution:
-    def removeNthFromEnd(self, head: ListNode, n: int) -> ListNode:
-        start_node = head
-        end_node = head
-        d = 0
-        while d < n:
-            end_node = end_node.next
-            d += 1
-        # remove first element
-        if end_node is None:
-            return start_node.next
-        while end_node.next is not None:
-            end_node = end_node.next
-            start_node = start_node.next
-        start_node.next = start_node.next.next
-        return head
-
-class Solution:
-    def mergeTwoLists(self, l1: ListNode, l2: ListNode) -> ListNode:
-        mn = ml = None
-        while True:
-            pair = list(sorted(filter(lambda l: l is not None,[l1, l2]), key = lambda k: k.val))
-            if len(pair) == 0:
-                break
-            if pair[0] == l1:
-                l1 = l1.next
-            if pair[0] == l2:
-                l2 = l2.next
-            if ml is None:
-                ml = mn = ListNode(pair[0].val)
-            else:
-                mn.next = ListNode(pair[0].val)
-                mn = mn.next
-        return ml
-
+    test_solution()
