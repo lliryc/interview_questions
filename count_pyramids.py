@@ -127,8 +127,4 @@ class TestSolution(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
-# Example usage
-sol = Solution()
-print(sol.countPyramids([[0,1,1],[1,1,1],[1,0,1],[1,1,1]]))  # Expected output: 4
-
 
