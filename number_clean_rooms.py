@@ -1,60 +1,132 @@
 from typing import List
 
 class Solution:
-    E = 0
-    S = 1
-    W = 2
-    N = 3
+    """
+    A class to solve the problem of counting the number of clean rooms
+    that a robot can clean given a room layout.
+    """
+
+    # Direction constants
+    EAST = 0
+    SOUTH = 1
+    WEST = 2
+    NORTH = 3
 
     def numberOfCleanRooms(self, room: List[List[int]]) -> int:
-        self.m = len(room)
-        self.n = len(room[0])
+        """
+        Counts the number of clean rooms after the robot has finished cleaning.
+
+        Args:
+            room (List[List[int]]): A 2D grid representing the room layout.
+                                    0: empty space, 1: obstacle
+
+        Returns:
+            int: The number of clean rooms.
+        """
+        self.m, self.n = len(room), len(room[0])
         self.room = room
-        self.rooms = 0
-        self.visited = [[[0 for k in range(4)] for i in range(self.n)] for j in range(self.m)]
-        self.run(0,0,0)
-        return self.rooms
+        self.clean_rooms = 0
+        self.visited = [[[False for _ in range(4)] for _ in range(self.n)] for _ in range(self.m)]
+        
+        self._clean(0, 0, self.EAST)
+        return self.clean_rooms
 
-    def run(self, r, c, d):
+    def _clean(self, row: int, col: int, direction: int) -> None:
+        """
+        Recursive function to simulate the robot's cleaning process.
+
+        Args:
+            row (int): Current row position of the robot.
+            col (int): Current column position of the robot.
+            direction (int): Current direction the robot is facing.
+        """
         while True:
-            if self.visited[r][c][d] == 1:
-                break
-            self.visited[r][c][d] = 1
-            if self.room[r][c] == 0:
-                self.rooms += 1
-                self.room[r][c] = 2
-            while True:
-                nr, nc = self.next(r, c, d)
-                if self.possible(nr, nc):
-                    r, c = nr, nc
+            if self.visited[row][col][direction]:
+                return
+
+            self.visited[row][col][direction] = True
+            if self.room[row][col] == 0:
+                self.clean_rooms += 1
+                self.room[row][col] = 2  # Mark as cleaned
+
+            for _ in range(4):  # Try all 4 directions
+                next_row, next_col = self._get_next_position(row, col, direction)
+                if self._is_valid_move(next_row, next_col):
+                    row, col = next_row, next_col
                     break
-                else:
-                    d = (d + 1) % 4
-                if self.visited[r][c][d] == 1:
-                    break
-        return
+                direction = (direction + 1) % 4
+            else:  # If no valid move found in any direction
+                return
 
-    def next(self, r, c, d):
-        if d == self.E:
-            c += 1
-        elif d == self.S:
-            r += 1
-        elif d == self.W:
-            c -= 1
-        elif d == self.N:
-            r -= 1
-        return r, c
+    def _get_next_position(self, row: int, col: int, direction: int) -> tuple:
+        """
+        Calculates the next position based on the current position and direction.
 
-    def possible(self, r, c):
-        if r < 0 or r >= self.m:
-            return False
-        if c < 0 or c >= self.n:
-            return False
-        return self.room[r][c] != 1
+        Args:
+            row (int): Current row position.
+            col (int): Current column position.
+            direction (int): Current direction.
 
-s = Solution()
-print(s.numberOfCleanRooms([[0,0,0],[0,0,1]]))
+        Returns:
+            tuple: Next (row, col) position.
+        """
+        if direction == self.EAST:
+            return row, col + 1
+        elif direction == self.SOUTH:
+            return row + 1, col
+        elif direction == self.WEST:
+            return row, col - 1
+        elif direction == self.NORTH:
+            return row - 1, col
+
+    def _is_valid_move(self, row: int, col: int) -> bool:
+        """
+        Checks if the given position is a valid move.
+
+        Args:
+            row (int): Row to check.
+            col (int): Column to check.
+
+        Returns:
+            bool: True if the move is valid, False otherwise.
+        """
+        return (0 <= row < self.m and 0 <= col < self.n and self.room[row][col] != 1)
 
 
+# Unit tests
+import unittest
+
+class TestSolution(unittest.TestCase):
+    def setUp(self):
+        self.solution = Solution()
+
+    def test_empty_room(self):
+        room = [[0]]
+        self.assertEqual(self.solution.numberOfCleanRooms(room), 1)
+
+    def test_single_obstacle(self):
+        room = [[0, 1], [0, 0]]
+        self.assertEqual(self.solution.numberOfCleanRooms(room), 3)
+
+    def test_multiple_obstacles(self):
+        room = [[0, 0, 0], [1, 1, 0], [0, 0, 0]]
+        self.assertEqual(self.solution.numberOfCleanRooms(room), 5)
+
+    def test_no_clean_rooms(self):
+        room = [[1]]
+        self.assertEqual(self.solution.numberOfCleanRooms(room), 0)
+
+    def test_complex_room(self):
+        room = [
+            [0, 0, 0, 0, 0],
+            [1, 1, 0, 1, 0],
+            [0, 0, 0, 1, 0],
+            [0, 1, 1, 1, 0],
+            [0, 0, 0, 0, 0]
+        ]
+        self.assertEqual(self.solution.numberOfCleanRooms(room), 13)
+
+if __name__ == "__main__":
+    unittest.main()
 
 
