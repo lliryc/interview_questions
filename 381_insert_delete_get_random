@@ -1,0 +1,50 @@
+from collections import defaultdict
+import random
+
+class RandomizedCollection:
+
+    def __init__(self):
+        self.elements = []
+        self.index_map = defaultdict(set)
+
+    def insert(self, val: int) -> bool:
+        present = val in self.index_map
+        self.elements.append(val)
+        self.index_map[val].add(len(self.elements) - 1)
+        return not present
+
+    def remove(self, val: int) -> bool:
+        if val not in self.index_map:
+            return False
+
+        indices = self.index_map[val]
+        last_val = self.elements[-1]
+
+        if last_val == val:
+            # Remove the last element
+            index = len(self.elements) - 1
+            self.elements.pop()
+            indices.remove(index)
+            if not indices:
+                del self.index_map[val]
+        else:
+            # Get any index of val
+            pos = next(iter(indices))
+            # Swap with last element
+            last_element = self.elements[-1]
+            # Update the index_map for last_element
+            self.index_map[last_element].remove(len(self.elements) - 1)
+            self.index_map[last_element].add(pos)
+            # Swap
+            self.elements[pos], self.elements[-1] = self.elements[-1], self.elements[pos]
+            # Pop
+            self.elements.pop()
+            # Remove pos from val's indices
+            indices.remove(pos)
+            if not indices:
+                del self.index_map[val]
+
+        return True
+
+    def getRandom(self) -> int:
+        return random.choice(self.elements)
