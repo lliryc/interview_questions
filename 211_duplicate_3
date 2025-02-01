@@ -1,0 +1,38 @@
+from typing import List
+
+class Solution:
+    def containsNearbyAlmostDuplicate(self, nums: List[int], indexDiff: int, valueDiff: int) -> bool:
+        if valueDiff < 0:
+            return False 
+        
+        buckets = {}
+        w = valueDiff + 1  # Bucket width
+        
+        for i, num in enumerate(nums):
+            bucket_id = num // w if num >= 0 else ((num + 1) // w) - 1
+            
+            if bucket_id in buckets:
+                return True
+            
+            # Check the left neighbor bucket.
+            if (bucket_id - 1 in buckets and abs(num - buckets[bucket_id - 1]) < w):
+                return True
+            
+            # Check the right neighbor bucket.
+            if (bucket_id + 1 in buckets and abs(num - buckets[bucket_id + 1]) < w):
+                return True
+            
+            buckets[bucket_id] = num
+            
+            if i >= indexDiff:
+                # Remove the element that is now too far away.
+                old_bucket = nums[i - indexDiff] // w if nums[i - indexDiff] >= 0 else ((nums[i - indexDiff] + 1) // w) - 1
+                del buckets[old_bucket]
+        
+        return False
+
+# Tests:
+if __name__ == "__main__":
+    sol = Solution()
+    print(sol.containsNearbyAlmostDuplicate([1, 2, 3, 1], 3, 0))  # True
+    print(sol.containsNearbyAlmostDuplicate([1, 5, 9, 1, 5, 9], 2, 3))  # False
